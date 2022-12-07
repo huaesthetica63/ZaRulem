@@ -15,6 +15,7 @@ var (
 	screenHeight = 350
 	carWidth     = 26
 	carHeight    = 50
+	scroll       = 0
 )
 
 type Car struct {
@@ -40,6 +41,10 @@ func init() {
 	}
 }
 func move() {
+	scroll += int(car.speed)
+	if scroll > screenWidth {
+		scroll = 0
+	}
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		car.y -= car.speed
 		if car.y < 0 {
@@ -71,16 +76,17 @@ func update(screen *ebiten.Image) error {
 	}
 	move()
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(0, 0)
+	op.GeoM.Translate(0, 0+float64(scroll))
 	x0, y0 := background.Size()
 	x1, y1 := car.sprite.Size()
 	op.GeoM.Scale(float64(screenWidth)/float64(x0), float64(screenHeight)/float64(y0))
+	screen.DrawImage(background, op)
+	op.GeoM.Translate(0, float64(-screenHeight))
 	screen.DrawImage(background, op)
 	playerOp := &ebiten.DrawImageOptions{}
 	playerOp.GeoM.Translate(car.x, car.y)
 	playerOp.GeoM.Scale(float64(carWidth)/float64(x1), float64(carHeight)/float64(y1))
 	screen.DrawImage(car.sprite, playerOp)
-
 	return nil
 }
 func main() {
