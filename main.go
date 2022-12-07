@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -22,6 +23,7 @@ var (
 	scroll       = 0
 	enemies      []Car
 	mut          *sync.Mutex
+	gameover     bool
 )
 
 type Car struct {
@@ -31,6 +33,7 @@ type Car struct {
 }
 
 func init() {
+	gameover = false
 	background, _, err = ebitenutil.NewImageFromFile("media/road.png", ebiten.FilterLinear)
 	if err != nil {
 		log.Fatal(err)
@@ -50,6 +53,22 @@ func init() {
 		speed:  5,
 	}
 	mut = &sync.Mutex{}
+}
+func checkCross(a, b Car) bool {
+	if a.x >= b.x && a.x <= b.x+float64(carWidth) {
+		if a.y >= b.y && a.y <= b.y+float64(carHeight) {
+			return true
+		} else if a.y-float64(carHeight) <= b.y && a.y-float64(carHeight) >= b.y+float64(carHeight) {
+			return true
+		}
+	} else if a.x+float64(carWidth) >= b.x && a.x+float64(carWidth) <= b.x+float64(carWidth) {
+		if a.y >= b.y && a.y <= b.y+float64(carHeight) {
+			return true
+		} else if a.y-float64(carHeight) <= b.y && a.y-float64(carHeight) >= b.y+float64(carHeight) {
+			return true
+		}
+	}
+	return false
 }
 func createEnemy() {
 	for {
@@ -113,7 +132,9 @@ func update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
-	move()
+	if !gameover {
+		move()
+	}
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(0, 0+float64(scroll))
 	x0, y0 := background.Size()
@@ -130,6 +151,17 @@ func update(screen *ebiten.Image) error {
 		screen.DrawImage(en.sprite, enop)
 	}
 	checkEnemies(mut)
+	if !gameover {
+		for _, en := range enemies {
+			if checkCross(car, en) {
+				gameover = true
+
+			}
+		}
+	}
+	if gameover {
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("GAME OVER!"))
+	}
 	return nil
 }
 func main() {
