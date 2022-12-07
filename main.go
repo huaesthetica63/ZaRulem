@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"math/rand"
+	"time"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -9,6 +11,7 @@ import (
 
 var (
 	background   *ebiten.Image
+	enemyImage   *ebiten.Image
 	err          error
 	car          Car
 	screenWidth  = 320
@@ -16,6 +19,7 @@ var (
 	carWidth     = 26
 	carHeight    = 50
 	scroll       = 0
+	enemies      []Car
 )
 
 type Car struct {
@@ -33,11 +37,27 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	enemyImage, _, err = ebitenutil.NewImageFromFile("media/enemy.png", ebiten.FilterLinear)
+	if err != nil {
+		log.Fatal(err)
+	}
 	car = Car{
 		sprite: carim,
 		x:      float64(screenWidth)/2.0 + 5,
 		y:      float64(screenHeight) - float64(carHeight),
 		speed:  5,
+	}
+}
+func createEnemy() {
+	for {
+		enemy := Car{
+			sprite: enemyImage,
+			x:      float64(rand.Intn(screenWidth - carWidth)),
+			y:      float64(-carHeight),
+			speed:  5,
+		}
+		enemies = append(enemies, enemy)
+		time.Sleep(time.Second)
 	}
 }
 func move() {
@@ -69,6 +89,9 @@ func move() {
 			car.x -= car.speed
 		}
 	}
+	for i, en := range enemies {
+		enemies[i].y += en.speed
+	}
 }
 func update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
@@ -78,18 +101,22 @@ func update(screen *ebiten.Image) error {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(0, 0+float64(scroll))
 	x0, y0 := background.Size()
-	x1, y1 := car.sprite.Size()
 	op.GeoM.Scale(float64(screenWidth)/float64(x0), float64(screenHeight)/float64(y0))
 	screen.DrawImage(background, op)
 	op.GeoM.Translate(0, float64(-screenHeight)+0.5)
 	screen.DrawImage(background, op)
 	playerOp := &ebiten.DrawImageOptions{}
 	playerOp.GeoM.Translate(car.x, car.y)
-	playerOp.GeoM.Scale(float64(carWidth)/float64(x1), float64(carHeight)/float64(y1))
 	screen.DrawImage(car.sprite, playerOp)
+	for _, en := range enemies {
+		enop := &ebiten.DrawImageOptions{}
+		enop.GeoM.Translate(en.x, en.y)
+		screen.DrawImage(en.sprite, enop)
+	}
 	return nil
 }
 func main() {
+	go createEnemy()
 	if err := ebiten.Run(update, screenWidth, screenHeight, 2, "За рулем"); err != nil {
 		log.Fatal(err)
 	}
