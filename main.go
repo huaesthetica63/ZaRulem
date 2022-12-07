@@ -134,6 +134,13 @@ func update(screen *ebiten.Image) error {
 	}
 	if !gameover {
 		move()
+	} else {
+		if ebiten.IsKeyPressed(ebiten.KeySpace) {
+			gameover = false
+			car.x = float64(screenWidth)/2.0 + 5
+			car.y = float64(screenHeight) - float64(carHeight)
+			enemies = []Car{}
+		}
 	}
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(0, 0+float64(scroll))
@@ -160,7 +167,7 @@ func update(screen *ebiten.Image) error {
 		}
 	}
 	if gameover {
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("GAME OVER!"))
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("GAME OVER! PRESS SPACE TO RESTART!"))
 	}
 	return nil
 }
