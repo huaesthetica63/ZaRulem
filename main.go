@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -20,6 +21,7 @@ var (
 	carHeight    = 50
 	scroll       = 0
 	enemies      []Car
+	mut          *sync.Mutex
 )
 
 type Car struct {
@@ -47,15 +49,18 @@ func init() {
 		y:      float64(screenHeight) - float64(carHeight),
 		speed:  5,
 	}
+	mut = &sync.Mutex{}
 }
 func createEnemy() {
 	for {
+		mut.Lock()
 		enemy := Car{
 			sprite: enemyImage,
 			x:      float64(rand.Intn(screenWidth - carWidth)),
 			y:      float64(-carHeight),
 			speed:  5,
 		}
+		mut.Unlock()
 		enemies = append(enemies, enemy)
 		time.Sleep(time.Second)
 	}
@@ -93,6 +98,17 @@ func move() {
 		enemies[i].y += en.speed
 	}
 }
+func checkEnemies(mut *sync.Mutex) {
+	mut.Lock()
+	for i, rcount, rlen := 0, 0, len(enemies); i < rlen; i++ {
+		j := i - rcount
+		if enemies[j].y > float64(screenHeight) {
+			enemies = append(enemies[:j], enemies[j+1:]...)
+			rcount++
+		}
+	}
+	mut.Unlock()
+}
 func update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
@@ -113,6 +129,7 @@ func update(screen *ebiten.Image) error {
 		enop.GeoM.Translate(en.x, en.y)
 		screen.DrawImage(en.sprite, enop)
 	}
+	checkEnemies(mut)
 	return nil
 }
 func main() {
