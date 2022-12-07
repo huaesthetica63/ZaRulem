@@ -35,14 +35,41 @@ func init() {
 	car = Car{
 		sprite: carim,
 		x:      float64(screenWidth)/2.0 + 5,
-		y:      float64(screenHeight) - float64(carHeight) - 10,
+		y:      float64(screenHeight) - float64(carHeight),
 		speed:  5,
+	}
+}
+func move() {
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		car.y -= car.speed
+		if car.y < 0 {
+			car.y += car.speed
+		}
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		car.y += car.speed
+		if car.y > float64(screenHeight)-float64(carHeight) {
+			car.y -= car.speed
+		}
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		car.x -= car.speed
+		if car.x < 0 {
+			car.x += car.speed
+		}
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		car.x += car.speed
+		if car.x > float64(screenWidth)-float64(carWidth) {
+			car.x -= car.speed
+		}
 	}
 }
 func update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
+	move()
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(0, 0)
 	x0, y0 := background.Size()
@@ -53,18 +80,7 @@ func update(screen *ebiten.Image) error {
 	playerOp.GeoM.Translate(car.x, car.y)
 	playerOp.GeoM.Scale(float64(carWidth)/float64(x1), float64(carHeight)/float64(y1))
 	screen.DrawImage(car.sprite, playerOp)
-	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		car.y -= car.speed
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		car.y += car.speed
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		car.x -= car.speed
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		car.x += car.speed
-	}
+
 	return nil
 }
 func main() {
