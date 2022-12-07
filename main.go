@@ -25,11 +25,11 @@ type Car struct {
 }
 
 func init() {
-	background, _, err = ebitenutil.NewImageFromFile("media/road.png", ebiten.FilterDefault)
+	background, _, err = ebitenutil.NewImageFromFile("media/road.png", ebiten.FilterLinear)
 	if err != nil {
 		log.Fatal(err)
 	}
-	carim, _, err := ebitenutil.NewImageFromFile("media/car.png", ebiten.FilterDefault)
+	carim, _, err := ebitenutil.NewImageFromFile("media/car.png", ebiten.FilterLinear)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func update(screen *ebiten.Image) error {
 	x1, y1 := car.sprite.Size()
 	op.GeoM.Scale(float64(screenWidth)/float64(x0), float64(screenHeight)/float64(y0))
 	screen.DrawImage(background, op)
-	op.GeoM.Translate(0, float64(-screenHeight))
+	op.GeoM.Translate(0, float64(-screenHeight)+0.5)
 	screen.DrawImage(background, op)
 	playerOp := &ebiten.DrawImageOptions{}
 	playerOp.GeoM.Translate(car.x, car.y)
